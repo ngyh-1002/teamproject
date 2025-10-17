@@ -157,3 +157,79 @@ ROS 좌표계 (map frame)
 로봇의 좌표계(`map frame`)와 지도 이미지를 일치시키는 역할을 합니다.
 
 ```
+
+---
+
+## 🧩 ROS 2 원격 PC 환경 설정 (.bashrc)
+
+원격 PC에서 라즈베리파이(로봇 본체)로부터 ROS 2 노드를 수신하고 통신하기 위해서는 ROS 2 환경 변수를 올바르게 설정해야 합니다.
+아래 설정들은 `.bashrc` 파일에 추가하면, 터미널을 새로 열 때마다 자동으로 적용됩니다.
+
+---
+
+### 📄 설정 방법
+
+```bash
+gedit ~/.bashrc
+```
+
+파일 맨 아래에 아래 내용을 추가한 뒤 저장하고 닫습니다.
+그 후 다음 명령으로 적용합니다:
+
+```bash
+source ~/.bashrc
+```
+
+---
+
+### ⚙️ 설정 내용
+
+```bash
+export RPLIDAR_MODEL=A1
+export ROS_DOMAIN_ID=30
+export ROS_LOCALHOST_ONLY=0
+export RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+source /opt/ros/humble/setup.bash
+source ~/ros2_ws/install/setup.bash
+```
+
+---
+
+### 🧠 각 명령어 설명
+
+| 명령어                                          | 역할 설명                                                                                                                                         |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `export RPLIDAR_MODEL=A1`                    | **RPLIDAR 모델 지정**<br>라이다 드라이버 패키지가 어떤 모델(A1, A2, A3 등)을 사용하는지 구분하기 위한 환경 변수입니다. launch 파일에서 자동으로 참조될 수 있습니다.                                  |
+| `export ROS_DOMAIN_ID=30`                    | **ROS 2 네트워크 구분용 ID 설정**<br>같은 LAN 상에 여러 ROS 네트워크가 존재할 때, 서로 다른 Domain ID를 주어 충돌을 방지합니다.<br>라즈베리파이와 원격 PC는 반드시 **같은 Domain ID**여야 통신이 가능합니다.  |
+| `export ROS_LOCALHOST_ONLY=0`                | **네트워크 통신 활성화**<br>`1`이면 로컬호스트(127.0.0.1) 통신만 허용하고, `0`이면 LAN을 통한 다른 장치와의 통신을 허용합니다.<br>원격 통신을 위해 반드시 `0`으로 설정해야 합니다.                         |
+| `export RMW_IMPLEMENTATION=rmw_fastrtps_cpp` | **ROS 미들웨어 구현체 선택**<br>ROS 2는 DDS 통신을 위해 다양한 RMW를 지원합니다. FastDDS(FastRTPS)는 기본적이고 안정적인 선택입니다.<br>통신 호환성을 위해 라즈베리파이와 원격 PC 모두 같은 설정을 유지해야 합니다. |
+| `source /opt/ros/humble/setup.bash`          | **ROS 2 기본 환경 로드**<br>ROS 2 Humble이 설치된 시스템 경로를 불러와 명령어(`ros2`, `colcon`, `rviz2` 등)를 사용할 수 있게 합니다.                                           |
+| `source ~/ros2_ws/install/setup.bash`        | **사용자 워크스페이스 환경 로드**<br>사용자가 직접 빌드한 패키지(예: `scout_mini`, `rplidar_ros`, `nav2` 등)를 ROS 2 환경에 등록하여 인식시킵니다.                                     |
+
+---
+
+### 🧾 확인 명령어
+
+적용이 잘 되었는지 확인하려면 아래 명령을 입력하세요:
+
+```bash
+printenv | grep ROS
+```
+
+예상 결과 예시:
+
+```
+ROS_DOMAIN_ID=30
+ROS_LOCALHOST_ONLY=0
+RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+```
+
+---
+
+### ✅ 참고
+
+* 라즈베리파이 측 `.bashrc`에도 동일한 `ROS_DOMAIN_ID`와 `RMW_IMPLEMENTATION` 설정이 있어야 통신이 가능합니다.
+* `ping` 또는 `ros2 topic list` 명령으로 원격 통신이 정상적으로 이뤄지는지 확인하세요.
+
+---
+
