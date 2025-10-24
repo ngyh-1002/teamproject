@@ -17,7 +17,7 @@ cd ~/ros2_ws/src
 
 * [Slamtec 공식 사이트](https://www.slamtec.com)
 * [AgileX Robotics 공식 사이트](https://www.agilex.ai)
-* [Roas 공식 문서 포털](https://docs.roas.co.kr)
+* [Roas 스카우트 미니 공식 문서 포털](https://docs.roas.co.kr)
 
 ---
 
