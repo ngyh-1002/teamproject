@@ -16,7 +16,7 @@ cd ~/ros2_ws/src
 ## 🧩 문의 및 참고 리소스
 
 * [Slamtec 공식 사이트](https://www.slamtec.com)
-* [AgileX Robotics 공식 사이트](https://www.agilex.ai)
+* [AgileX Robotics 깃허브 사이트](https://github.com/agilexrobotics/scout_ros2)
 * [Roas 스카우트 미니 공식 문서 포털](https://docs.roas.co.kr)
 
 ---
