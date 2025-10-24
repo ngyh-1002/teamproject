@@ -21,6 +21,7 @@ cd ~/ros2_ws/src
 ```bash
 git clone https://github.com/agilexrobotics/ugv_sdk.git
 git clone https://github.com/agilexrobotics/scout_ros2.git
+git clone -b ros2 https://github.com/Slamtec/rplidar_ros.git
 ```
 
 ---
@@ -31,12 +32,6 @@ git clone https://github.com/agilexrobotics/scout_ros2.git
 
 ### 3-1. scout_base/src/scout_base_ros.cpp
 
-* 기존: `#include "tf2_geometry_msgs/tf2_geometry_msgs.h"`
-* 수정: `#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"`
-* `std::make_shared<ScoutBaseRos>` 대신 `shared_from_this()` 사용 시 주의
-
-### 3-2. scout_base/CMakeLists.txt
-
 * 기존: ROS1 스타일 `catkin_install_in_prefix_root` 등 불필요 변수 존재
 * 수정: `find_package(rclcpp REQUIRED)` 등 ROS2 스타일로 변경
 * C++14 컴파일 옵션 명시, 필요 없는 옵션 제거
@@ -46,6 +41,13 @@ git clone https://github.com/agilexrobotics/scout_ros2.git
 > * ROS2에서는 일부 ROS1 헤더가 호환되지 않음
 > * CMakeLists.txt에서 ROS2 패키지 찾기 방식 필요
 > * shared_ptr 관련 객체 수명 관리 문제 → `std::shared_ptr` 명시적으로 사용
+
+### 3-2. scout_base/CMakeLists.txt
+
+
+* 기존: `#include "tf2_geometry_msgs/tf2_geometry_msgs.h"`
+* 수정: `#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"`
+* `std::make_shared<ScoutBaseRos>` 대신 `shared_from_this()` 사용 시 주의
 
 ---
 
