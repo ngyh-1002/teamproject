@@ -13,6 +13,13 @@
 mkdir -p ~/ros2_ws/src
 cd ~/ros2_ws/src
 ````
+## 🧩 문의 및 참고 리소스
+
+* [Slamtec 공식 사이트](https://www.slamtec.com)
+* [AgileX Robotics 공식 사이트](https://www.agilex.ai)
+* [Roas 공식 문서 포털](https://docs.roas.co.kr)
+
+---
 
 ---
 
