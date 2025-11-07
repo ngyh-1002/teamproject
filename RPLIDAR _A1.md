@@ -1,8 +1,8 @@
 
 ---
 
-[rplidar_a1스펙](<img width="1349" height="1266" alt="스크린샷 2025-11-07 11-39-52" src="https://github.com/user-attachments/assets/80460b5f-b8f2-4048-bcda-489900aa1bea" />
-)
+<img width="1349" height="1266" alt="스크린샷 2025-11-07 11-39-52" src="https://github.com/user-attachments/assets/d2f5caf7-c255-4242-85d5-2dbc0a2665f8" />
+
 ## 🧐 RPLIDAR A1 주요 스펙 5가지 설명
 
 RPLIDAR A1의 주요 스펙 5가지는 다음과 같으며, 각각의 의미는 아래와 같습니다.
