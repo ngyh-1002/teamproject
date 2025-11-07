@@ -1,7 +1,7 @@
 
 ---
 
-<img width="1349" height="1266" alt="스크린샷 2025-11-07 11-39-52" src="https://github.com/user-attachments/assets/d2f5caf7-c255-4242-85d5-2dbc0a2665f8" />
+<img width="1349" height="1266" alt="RPlidar_a1스펙" src="https://github.com/user-attachments/assets/d2f5caf7-c255-4242-85d5-2dbc0a2665f8" />
 
 ## 🧐 RPLIDAR A1 주요 스펙 5가지 설명
 
@@ -53,7 +53,7 @@ RPLIDAR A1의 주요 스펙 5가지는 다음과 같으며, 각각의 의미는 
 
 ---
 
-네, 알겠습니다. `rplidar_node.cpp` 코드 분석을 통해 확인된 **회전 주파수(스캔 주파수)를 설정하는 부분**을 리드미(README) 요약 파일에 명확히 추가하여 정리해 드리겠습니다.
+<img width="3064" height="486" alt="RPlidar_a1실제 동작시 스펙" src="https://github.com/user-attachments/assets/56794e81-5d07-4345-8756-cb001a4db69a" />
 
 -----
 
