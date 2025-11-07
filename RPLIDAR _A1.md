@@ -33,3 +33,69 @@ RPLIDAR A1의 주요 스펙 5가지는 다음과 같으며, 각각의 의미는 
 
 
 출처 [RP_lidar_a1공식사이트](https://www.slamtec.com/en/Lidar/A1)을 사용 설정하세요.
+
+## 📝 RPLIDAR A1 (A1M8) 스펙 요약 (README 형식)
+
+---
+
+## 🚀 1. 핵심 성능 요약 (Key Performance)
+
+| 항목 | 사양/값 | 비고 |
+| :--- | :--- | :--- |
+| **최대 측정 거리 (Max Distance)** | **12.0m** | 펌웨어에 정의된 광학 센서의 물리적 한계. (ROS 노드에서 `max_distance`로 사용됨) |
+| **최대 샘플링 주파수 (Sample Rate)** | **8000 Hz** (8,000회/초) | 레이저 센서의 최대 측정 속도. (모터 속도와 관계없이 고정) |
+| **샘플 주기 (Sample Duration)** | **$125 \mu s$** | $1 / 8000 \text{ Hz}$. (`sl_lidar_cmd.h`의 `std_sample_duration_us` 값) |
+| **일반 스캔 주파수 (Typical Scan Rate)**| **5.5 Hz** | 일반적인 모터 회전 속도 (RPM) |
+| **최대 스캔 주파수 (Max Scan Rate)** | **10 Hz** | 모터 제어를 통해 설정 가능한 최대 회전 속도 |
+| **1회전(360°)당 샘플 수** | 약 800 ~ 1,454 포인트 | 스캔 주파수에 따라 가변됨 (10 Hz 시 800개, 5.5 Hz 시 1,454개) |
+
+---
+
+## 🛠️ 2. SDK 및 프로토콜 정의 (`sl_lidar_cmd.h` 기반)
+
+RPLIDAR 드라이버가 장치와 통신하는 데 사용하는 주요 명령어 코드 및 데이터 구조입니다.
+
+### 2.1. 명령어 코드 (Commands)
+
+| 코드 | 매크로명 | 설명 |
+| :---: | :--- | :--- |
+| `0x20` | `SL_LIDAR_CMD_SCAN` | 표준 스캔 모드 시작 명령 |
+| `0x82` | `SL_LIDAR_CMD_EXPRESS_SCAN` | 고속 스캔 모드 시작 (A1/A2 계열) |
+| `0x50` | `SL_LIDAR_CMD_GET_DEVICE_INFO` | 장치 정보(펌웨어/하드웨어 버전 등) 요청 |
+| `0x59` | `SL_LIDAR_CMD_GET_SAMPLERATE` | 샘플링 주기 정보 요청 (`125 \mu s`를 얻는 명령) |
+| `0xF0` | `SL_LIDAR_CMD_SET_MOTOR_PWM` | 모터 속도(RPM)를 제어하기 위한 PWM 설정 |
+
+### 2.2. 응답 데이터 타입 (Response Types)
+
+| 코드 | 매크로명 | 설명 |
+| :---: | :--- | :--- |
+| `0x81` | `SL_LIDAR_ANS_TYPE_MEASUREMENT` | 표준 스캔 포인트 데이터 응답 타입 |
+| `0x83` | `SL_LIDAR_ANS_TYPE_MEASUREMENT_HQ` | 고화질 스캔 포인트 데이터 응답 타입 |
+| `0x15` | `SL_LIDAR_ANS_TYPE_SAMPLE_RATE` | 샘플링 주기에 대한 응답 데이터 타입 |
+
+### 2.3. 핵심 데이터 구조체
+
+| 구조체명 | 핵심 필드 | 데이터 처리 방식 |
+| :--- | :--- | :--- |
+| `sl_lidar_response_measurement_node_hq_t` | `dist_mm_q2` | 측정된 거리 값. **$4.0$으로 나누고 $1000$으로 나누어 미터(m) 단위**로 변환하여 사용. |
+| `sl_lidar_response_sample_rate_t` | `std_sample_duration_us` | 이 필드에 저장된 $\mu s$ 값이 $\mathbf{125}$일 때, $\mathbf{8000 \text{ Hz}}$로 계산됨. |
+
+---
+
+## ⚙️ 3. ROS 노드의 동작 분석 (`rplidar_node.cpp` 기반)
+
+ROS 드라이버는 받은 데이터를 가공하여 `sensor_msgs/LaserScan` 메시지로 발행합니다.
+
+### 3.1. 각도 보상 (Angle Compensation)
+
+* 드라이버는 `angle_compensate` 플래그가 `true`일 경우, 라이다가 회전하는 동안 데이터가 불규칙하게 측정되는 문제를 해결합니다.
+* **$360^{\circ}$ 전체 각도를 균일한 간격**으로 나누기 위해, 한 바퀴당 예상 포인트 수(예: 1454개)를 계산하여 이산적인 배열에 매핑합니다.
+* 이로써 최종 출력되는 `LaserScan` 메시지의 각도 간격(`angle_increment`)이 균일하게 보장됩니다.
+
+### 3.2. 거리 데이터 변환
+
+ROS에서 사용하는 거리 값은 최종적으로 미터(m) 단위로 변환됩니다.
+
+$$\text{Range (m)} = \frac{\text{dist\_mm\_q2}}{4.0 \times 1000}$$
+* `dist_mm_q2`를 **$4$**로 나누는 것은 Q2 고정소수점 형식을 원래의 밀리미터(mm) 단위로 복원하는 과정입니다.
+* 다시 **$1000$**으로 나누어 미터(m) 단위로 최종 변환됩니다.
