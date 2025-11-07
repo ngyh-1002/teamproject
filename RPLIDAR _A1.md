@@ -1,6 +1,8 @@
 
 ---
 
+![rplidar_a1스펙](<img width="1349" height="1266" alt="스크린샷 2025-11-07 11-39-52" src="https://github.com/user-attachments/assets/80460b5f-b8f2-4048-bcda-489900aa1bea" />
+)
 ## 🧐 RPLIDAR A1 주요 스펙 5가지 설명
 
 RPLIDAR A1의 주요 스펙 5가지는 다음과 같으며, 각각의 의미는 아래와 같습니다.
@@ -15,7 +17,7 @@ RPLIDAR A1의 주요 스펙 5가지는 다음과 같으며, 각각의 의미는 
 
 ### 3. **스캐닝 주파수 (Rotational Speed / Scan Rate)**: $5.5Hz$
 * **의미**: **1초 동안 360도 회전하여 주변 전체를 스캔하는 횟수**를 나타냅니다. '초당 회전 수'라고도 이해할 수 있습니다.
-* **해설**: 일반적으로 **초당 5.5회**의 속도로 회전합니다. 이 수치는 로봇이 주변 환경을 **실시간으로 인식하고 지도화(Mapping)하는 속도**와 관련이 있습니다.
+* **해설**: 일반적으로 **초당 10회**의 속도로 회전합니다. 이 수치는 로봇이 주변 환경을 **실시간으로 인식하고 지도화(Mapping)하는 속도**와 관련이 있습니다.
 
 ### 4. **각도 분별율 (Angular Resolution)**: $\le 1^\circ$
 * **의미**: **인접한 두 측정 지점 사이의 최소 각도 간격**을 나타냅니다. 수평 해상도라고도 볼 수 있습니다.
@@ -51,51 +53,57 @@ RPLIDAR A1의 주요 스펙 5가지는 다음과 같으며, 각각의 의미는 
 
 ---
 
-## 🛠️ 2. SDK 및 프로토콜 정의 (`sl_lidar_cmd.h` 기반)
+네, 알겠습니다. `rplidar_node.cpp` 코드 분석을 통해 확인된 **회전 주파수(스캔 주파수)를 설정하는 부분**을 리드미(README) 요약 파일에 명확히 추가하여 정리해 드리겠습니다.
 
-RPLIDAR 드라이버가 장치와 통신하는 데 사용하는 주요 명령어 코드 및 데이터 구조입니다.
+-----
 
-### 2.1. 명령어 코드 (Commands)
+## 📄 RPLIDAR A1 ROS 노드/SDK 분석 요약 (README)
 
-| 코드 | 매크로명 | 설명 |
-| :---: | :--- | :--- |
-| `0x20` | `SL_LIDAR_CMD_SCAN` | 표준 스캔 모드 시작 명령 |
-| `0x82` | `SL_LIDAR_CMD_EXPRESS_SCAN` | 고속 스캔 모드 시작 (A1/A2 계열) |
-| `0x50` | `SL_LIDAR_CMD_GET_DEVICE_INFO` | 장치 정보(펌웨어/하드웨어 버전 등) 요청 |
-| `0x59` | `SL_LIDAR_CMD_GET_SAMPLERATE` | 샘플링 주기 정보 요청 (`125 \mu s`를 얻는 명령) |
-| `0xF0` | `SL_LIDAR_CMD_SET_MOTOR_PWM` | 모터 속도(RPM)를 제어하기 위한 PWM 설정 |
+### 2\. 💻 ROS 드라이버 (`rplidar_node.cpp`) 동작 분석 (추가 및 수정)
 
-### 2.2. 응답 데이터 타입 (Response Types)
+| 항목 | 사양/값 | 근거 (SDK/펌웨어) | 설명 |
+| :--- | :--- | :--- | :--- |
+| **최대 거리** | **12.0m** | `SL_LIDAR_CONF_MAX_DISTANCE` (펌웨어 값) | 센서가 보장하는 최대 측정 가능 거리. 스캔 속도와 무관하게 고정됩니다. |
+| **샘플링 주파수** | **8000 Hz** (8,000회/초) | `std_sample_duration_us` ($125 \mu s$) | 레이저 센서의 최대 측정 속도. 1초에 생성되는 총 데이터 포인트 수입니다. |
+| **기본 스캔 주파수** | **10 Hz** (10회/초) | ROS 파라미터 기본값 (`10.0`) | ROS 노드가 목표로 하는 1초당 360° 회전 횟수입니다. |
+| **기본 모터 속도** | **600 RPM** (분당 회전수) | `drv->setMotorSpeed(600)` | 10 Hz로 회전하기 위해 A 시리즈에 설정되는 모터 속도입니다 ($10 \text{ Hz} \times 60 \text{ s} = 600 \text{ RPM}$). |
+| **360°당 포인트 수** | 약 800개 | $8000 \text{ Samples/s} / 10 \text{ Rotations/s}$ | 10 Hz로 작동 시, 한 바퀴 스캔 메시지에 담기는 거리 데이터의 개수입니다. |
 
-| 코드 | 매크로명 | 설명 |
-| :---: | :--- | :--- |
-| `0x81` | `SL_LIDAR_ANS_TYPE_MEASUREMENT` | 표준 스캔 포인트 데이터 응답 타입 |
-| `0x83` | `SL_LIDAR_ANS_TYPE_MEASUREMENT_HQ` | 고화질 스캔 포인트 데이터 응답 타입 |
-| `0x15` | `SL_LIDAR_ANS_TYPE_SAMPLE_RATE` | 샘플링 주기에 대한 응답 데이터 타입 |
+<br>
 
-### 2.3. 핵심 데이터 구조체
+## 3\. 🎯 회전 주파수 (스캔 주파수) 설정 로직 상세
 
-| 구조체명 | 핵심 필드 | 데이터 처리 방식 |
-| :--- | :--- | :--- |
-| `sl_lidar_response_measurement_node_hq_t` | `dist_mm_q2` | 측정된 거리 값. **$4.0$으로 나누고 $1000$으로 나누어 미터(m) 단위**로 변환하여 사용. |
-| `sl_lidar_response_sample_rate_t` | `std_sample_duration_us` | 이 필드에 저장된 $\mu s$ 값이 $\mathbf{125}$일 때, $\mathbf{8000 \text{ Hz}}$로 계산됨. |
+`rplidar_node.cpp` 코드는 라이다의 \*\*회전 주파수(스캔 주파수)\*\*를 **ROS 파라미터로 설정**하고, 이 값을 RPM으로 변환하여 라이다 장치에 명령합니다.
 
----
+### 3.1. ROS 파라미터를 통한 기본값 설정
 
-## ⚙️ 3. ROS 노드의 동작 분석 (`rplidar_node.cpp` 기반)
+ROS 노드는 `scan_frequency` 파라미터를 통해 기본 회전 목표를 **10.0 Hz**로 설정합니다.
 
-ROS 드라이버는 받은 데이터를 가공하여 `sensor_msgs/LaserScan` 메시지로 발행합니다.
+```cpp
+nh_private.param<double>("scan_frequency", scan_frequency, 10.0);
+```
 
-### 3.1. 각도 보상 (Angle Compensation)
+### 3.2. RPLIDAR A 시리즈의 모터 속도 명령
 
-* 드라이버는 `angle_compensate` 플래그가 `true`일 경우, 라이다가 회전하는 동안 데이터가 불규칙하게 측정되는 문제를 해결합니다.
-* **$360^{\circ}$ 전체 각도를 균일한 간격**으로 나누기 위해, 한 바퀴당 예상 포인트 수(예: 1454개)를 계산하여 이산적인 배열에 매핑합니다.
-* 이로써 최종 출력되는 `LaserScan` 메시지의 각도 간격(`angle_increment`)이 균일하게 보장됩니다.
+RPLIDAR A 시리즈의 경우, 설정된 스캔 주파수와 관계없이 기본 RPM 값으로 초기화되는 코드가 명시되어 있습니다.
 
-### 3.2. 거리 데이터 변환
+```cpp
+if(!scan_frequency_tunning_after_scan){ //for RPLIDAR A serials
+    //start RPLIDAR A serials  rotate by pwm
+    drv->setMotorSpeed(600);
+}
+```
 
-ROS에서 사용하는 거리 값은 최종적으로 미터(m) 단위로 변환됩니다.
+  * **`drv->setMotorSpeed(600)`**: 이 코드는 모터 속도를 **600 RPM**으로 설정합니다. 이는 **10 Hz** (1초에 10회전)에 해당합니다.
 
-$$\text{Range (m)} = \frac{\text{dist\_mm\_q2}}{4.0 \times 1000}$$
-* `dist_mm_q2`를 **$4$**로 나누는 것은 Q2 고정소수점 형식을 원래의 밀리미터(mm) 단위로 복원하는 과정입니다.
-* 다시 **$1000$**으로 나누어 미터(m) 단위로 최종 변환됩니다.
+### 3.3. S/T 시리즈의 동적 설정 (참고)
+
+A 시리즈 외의 모델(S/T 시리즈)은 ROS 파라미터(`scan_frequency`)를 사용하여 RPM을 계산하고 설정합니다.
+
+```cpp
+drv->setMotorSpeed(scan_frequency*60); //rpm
+```
+
+  * 이 방식은 설정된 `scan_frequency` 값(예: 10.0 Hz)에 **60을 곱하여 (10 Hz \* 60 = 600 RPM)** 모터 속도를 동적으로 제어합니다.
+
+**결론적으로, 코드는 ROS 파라미터로 회전 주파수를 정의하고, 이를 RPM으로 변환하여 `drv->setMotorSpeed()` 함수를 통해 라이다 하드웨어에 명령함으로써 회전 속도를 제어합니다.**
